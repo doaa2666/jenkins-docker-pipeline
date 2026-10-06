@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'doaa2666/jenkins-docker-demo'
+        IMAGE_NAME = 'doaa2026/jenkins-docker-demo'
     }
 
     stages {
