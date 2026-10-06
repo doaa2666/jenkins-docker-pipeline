@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'docker-agent'
+    }
 
     environment {
         IMAGE_NAME = 'doaa2026/jenkins-docker-demo'
@@ -9,6 +11,14 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Source code was checked out by Jenkins'
+                sh 'pwd'
+                sh 'ls -la'
+            }
+        }
+
+        stage('Docker Version') {
+            steps {
+                sh 'docker version'
             }
         }
 
@@ -28,9 +38,14 @@ pipeline {
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
-                    sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
-                    sh 'docker push $IMAGE_NAME:$BUILD_NUMBER'
-                    sh 'docker push $IMAGE_NAME:latest'
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login \
+                          --username "$DOCKER_USERNAME" \
+                          --password-stdin
+
+                        docker push "$IMAGE_NAME:$BUILD_NUMBER"
+                        docker push "$IMAGE_NAME:latest"
+                    '''
                 }
             }
         }
@@ -42,11 +57,15 @@ pipeline {
         }
 
         success {
-            echo 'Docker image built and pushed successfully.'
+            echo 'Docker image built and pushed successfully on external Docker agent.'
         }
 
         failure {
             echo 'Pipeline failed.'
+        }
+
+        cleanup {
+            sh 'docker image prune -f || true'
         }
     }
 }
